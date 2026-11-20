@@ -1,0 +1,23 @@
+name: AlignProbe CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  verify-graders-and-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install lightweight test dependencies
+        run: pip install pytest matplotlib numpy
+      - name: Run deterministic verifier unit tests
+        run: pytest -v
+      - name: Smoke-test end-to-end evaluation & analysis pipeline
+        run: |
+          python -m src.evaluate --dry-run --output results/ci_smoke_traces.jsonl
+          python -m src.analyze results/ci_smoke_traces.jsonl --report /tmp/ci_report.md --plot /tmp/ci_plot.png --json-out /tmp/ci_summary.json
